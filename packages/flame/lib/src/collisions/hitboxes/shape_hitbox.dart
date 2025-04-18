@@ -172,18 +172,21 @@ mixin ShapeHitbox on ShapeComponent implements Hitbox<ShapeHitbox> {
   /// parents boundaries.
   void fillParent();
 
+  static final Vector2 _absoluteCenterTemp = Vector2.zero();
+  static final Vector2 _absoluteScaledSizeTemp = Vector2.zero();
   Aabb2 _recalculateAabb() {
-    final size = absoluteScaledSize;
+    absoluteScaledSizeIntoOutput(output: _absoluteScaledSizeTemp);
     // This has double.minPositive since a point on the edge of the AABB is
     // currently counted as outside.
     _halfExtents.setValues(
-      size.x / 2 + _extentEpsilon,
-      size.y / 2 + _extentEpsilon,
+      _absoluteScaledSizeTemp.x / 2 + _extentEpsilon,
+      _absoluteScaledSizeTemp.y / 2 + _extentEpsilon,
     );
     _rotationMatrix.setRotationZ(absoluteAngle);
     _validAabb = true;
     return _aabb
-      ..setCenterAndHalfExtents(absoluteCenter, _halfExtents)
+      ..setCenterAndHalfExtents(
+          absoluteCenterIntoOutput(output: _absoluteCenterTemp), _halfExtents)
       ..rotate(_rotationMatrix);
   }
 

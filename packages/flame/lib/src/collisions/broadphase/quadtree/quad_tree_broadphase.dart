@@ -47,6 +47,7 @@ class QuadTreeBroadphase extends Broadphase<ShapeHitbox> {
   @override
   List<ShapeHitbox> get items => tree.hitboxes;
 
+  static final _itemCenterTemp = Vector2.zero();
   @override
   Iterable<CollisionProspect<ShapeHitbox>> query() {
     _potentials.clear();
@@ -58,7 +59,9 @@ class QuadTreeBroadphase extends Broadphase<ShapeHitbox> {
         continue;
       }
 
-      final itemCenter = activeItem.aabb.center;
+      _itemCenterTemp..setFrom(activeItem.aabb.min)
+        ..add(activeItem.aabb.max)
+        ..scale(0.5);
       final potentiallyCollide = tree.query(activeItem);
       for (final potential in potentiallyCollide.entries.first.value) {
         if (potential.collisionType == CollisionType.inactive) {
@@ -76,7 +79,7 @@ class QuadTreeBroadphase extends Broadphase<ShapeHitbox> {
         }
 
         final distanceCloseEnough = minimumDistanceCheck.call(
-          itemCenter,
+          _itemCenterTemp,
           _cacheCenterOfHitbox(potential),
         );
         if (distanceCloseEnough == false) {

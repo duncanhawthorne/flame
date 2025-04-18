@@ -7,8 +7,9 @@ class DragUpdateEvent extends DisplacementEvent {
       : timestamp = details.sourceTimeStamp ?? Duration.zero,
         super(
           deviceStartPosition: details.globalPosition.toVector2(),
-          deviceEndPosition:
-              details.globalPosition.toVector2() + details.delta.toVector2(),
+          deviceEndPosition: details.globalPosition.toVector2()
+            ..x += details.delta.dx
+            ..y += details.delta.dy,
         );
 
   final int pointerId;

@@ -93,7 +93,8 @@ class CircleComponent extends ShapeComponent {
   @override
   bool containsPoint(Vector2 point) {
     final scaledRadius = this.scaledRadius;
-    return absoluteCenter.distanceToSquared(point) <
+    return absoluteCenterIntoOutput(output: _absCenterTmp)
+            .distanceToSquared(point) <
         scaledRadius * scaledRadius;
   }
 
@@ -112,6 +113,8 @@ class CircleComponent extends ShapeComponent {
   /// line is tangent) or two points (if the line is secant).
   /// An edge point of the [lineSegment] that originates on the edge of the
   /// circle doesn't count as an intersection.
+
+  static final _absCenterTmp = Vector2.zero();
   List<Vector2> lineSegmentIntersections(
     LineSegment lineSegment, {
     double epsilon = double.minPositive,
@@ -126,7 +129,8 @@ class CircleComponent extends ShapeComponent {
       ..sub(lineSegment.from); // to - from
     _delta10
       ..setFrom(lineSegment.from)
-      ..sub(absoluteCenter); // from - absoluteCenter
+      ..sub(absoluteCenterIntoOutput(
+          output: _absCenterTmp)); // from - absoluteCenter
     final a = _delta21.length2;
     final b = 2 * _delta21.dot(_delta10);
     final c = _delta10.length2 - radius * radius;

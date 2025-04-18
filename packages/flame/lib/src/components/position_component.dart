@@ -221,9 +221,12 @@ class PositionComponent extends Component
 
   /// The resulting size after all the ancestors and the components own scale
   /// has been applied.
-  Vector2 get absoluteScaledSize {
-    final absoluteScale = this.absoluteScale;
-    return Vector2(
+  Vector2 get absoluteScaledSize => absoluteScaledSizeIntoOutput();
+
+  Vector2 absoluteScaledSizeIntoOutput({Vector2? output}) {
+    final out = output ?? Vector2.zero();
+    final absoluteScale = absoluteScaleIntoOutput(output: out);
+    return out..setValues(
       width * absoluteScale.x.abs(),
       height * absoluteScale.y.abs(),
     );
@@ -241,9 +244,13 @@ class PositionComponent extends Component
 
   /// The resulting scale after all the ancestors and the components own scale
   /// has been applied.
-  Vector2 get absoluteScale {
+
+  Vector2 get absoluteScale => absoluteScaleIntoOutput();
+
+  Vector2 absoluteScaleIntoOutput({Vector2? output}) {
+    final result = output ?? Vector2.zero();
     return ancestors().whereType<PositionComponent>().fold<Vector2>(
-          scale.clone(),
+      result..setFrom(scale),
           (totalScale, c) => totalScale..multiply(c.scale),
         );
   }
@@ -284,8 +291,9 @@ class PositionComponent extends Component
 
   /// Convert local coordinates of a point [point] inside the component
   /// into the parent's coordinate space.
-  Vector2 positionOf(Vector2 point) {
-    return transform.localToGlobal(point);
+  Vector2 positionOf(Vector2 point, {Vector2? output}) {
+    final out = output ?? Vector2.zero();
+    return transform.localToGlobal(point, output: out);
   }
 
   /// Similar to [positionOf()], but applies to any anchor point within
@@ -299,12 +307,13 @@ class PositionComponent extends Component
 
   /// Convert local coordinates of a point [point] inside the component
   /// into the global (world) coordinate space.
-  Vector2 absolutePositionOf(Vector2 point) {
-    var parentPoint = positionOf(point);
+  Vector2 absolutePositionOf(Vector2 point, {Vector2? output}) {
+    final out = output ?? Vector2.zero();
+    var parentPoint = positionOf(point, output: out);
     var ancestor = parent;
     while (ancestor != null) {
       if (ancestor is PositionComponent) {
-        parentPoint = ancestor.positionOf(parentPoint);
+        parentPoint = ancestor.positionOf(parentPoint, output: out);
       }
       ancestor = ancestor.parent;
     }
@@ -313,8 +322,10 @@ class PositionComponent extends Component
 
   /// Similar to [absolutePositionOf()], but applies to any anchor
   /// point within the component.
-  Vector2 absolutePositionOfAnchor(Anchor anchor) =>
-      absolutePositionOf(Vector2(anchor.x * size.x, anchor.y * size.y));
+  Vector2 absolutePositionOfAnchor(Anchor anchor, {Vector2? output}) {
+    final Vector2 out = output ?? Vector2.zero();
+    return absolutePositionOf(out..setValues(anchor.x * size.x, anchor.y * size.y), output: out);
+  }
 
   /// Transform [point] from the parent's coordinate space into the local
   /// coordinates. This function is the inverse of [positionOf()].
@@ -359,7 +370,12 @@ class PositionComponent extends Component
       absolutePositionOfAnchor(Anchor.topLeft);
 
   /// The absolute center of the component.
-  Vector2 get absoluteCenter => absolutePositionOfAnchor(Anchor.center);
+  Vector2 get absoluteCenter => absoluteCenterIntoOutput();
+
+  Vector2 absoluteCenterIntoOutput({Vector2? output}) {
+    final Vector2 out = output ?? Vector2.zero();
+    return out..setFrom(absolutePositionOfAnchor(Anchor.center, output: out));
+  }
 
   /// Returns the angle formed by component's orientation vector and a vector
   /// starting at component's absolute position and ending at [target]. This

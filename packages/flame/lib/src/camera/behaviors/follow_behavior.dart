@@ -62,18 +62,27 @@ class FollowBehavior extends Component {
 
   @override
   void update(double dt) {
+    final Vector2 targetPosition = target.position;
+    if (!verticalOnly && !horizontalOnly && _speed.isInfinite) {
+      owner.position = targetPosition;
+      return;
+    }
+
+    final Vector2 ownerPosition = owner.position;
     _tempDelta.setValues(
-      verticalOnly ? 0 : target.position.x - owner.position.x,
-      horizontalOnly ? 0 : target.position.y - owner.position.y,
+      verticalOnly ? 0 : targetPosition.x - ownerPosition.x,
+      horizontalOnly ? 0 : targetPosition.y - ownerPosition.y,
     );
 
-    final distance = _tempDelta.length;
-    final deltaOffset = _speed * dt;
-    if (distance > deltaOffset) {
-      _tempDelta.scale(deltaOffset / distance);
+    if (_speed.isFinite) {
+      final distance = _tempDelta.length;
+      final deltaOffset = _speed * dt;
+      if (distance > deltaOffset) {
+        _tempDelta.scale(deltaOffset / distance);
+      }
     }
     if (_tempDelta.x != 0 || _tempDelta.y != 0) {
-      owner.position = _tempDelta..add(owner.position);
+      owner.position = _tempDelta..add(ownerPosition);
     }
   }
 }

@@ -36,7 +36,9 @@ class Viewfinder extends Component
   Vector2 get position => -transform.offset;
   @override
   set position(Vector2 value) {
-    transform.offset = -value;
+    transform.offset
+      ..setFrom(value)
+      ..negate();
     visibleRect = null;
   }
 

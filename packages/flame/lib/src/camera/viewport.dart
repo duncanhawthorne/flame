@@ -156,13 +156,13 @@ abstract class Viewport extends Component
   }
 
   @override
-  Vector2 parentToLocal(Vector2 point) {
-    return globalToLocal(point);
+  Vector2 parentToLocal(Vector2 point, {Vector2? out}) {
+    return globalToLocal(point, output: out);
   }
 
   @override
-  Vector2 localToParent(Vector2 point) {
-    return localToGlobal(point);
+  Vector2 localToParent(Vector2 point, {Vector2? out}) {
+    return localToGlobal(point, output: out);
   }
 
   void transformCanvas(Canvas canvas) {

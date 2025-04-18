@@ -94,11 +94,15 @@ class CirclePolygonIntersections
 
 class CircleCircleIntersections
     extends Intersections<CircleComponent, CircleComponent> {
+  static final Vector2 _centerATemp = Vector2.zero();
+  static final Vector2 _centerBTemp = Vector2.zero();
+  static final Vector2 _deltaTemp = Vector2.zero();
+
   @override
   Set<Vector2> intersect(CircleComponent shapeA, CircleComponent shapeB) {
-    final centerA = shapeA.absoluteCenter;
-    final centerB = shapeB.absoluteCenter;
-    final distance = centerA.distanceTo(centerB);
+    shapeA.absoluteCenterIntoOutput(output: _centerATemp);
+    shapeB.absoluteCenterIntoOutput(output: _centerBTemp);
+    final distance = _centerATemp.distanceTo(_centerBTemp);
     final radiusA = shapeA.radius;
     final radiusB = shapeB.radius;
     if (distance > radiusA + radiusB) {
@@ -110,8 +114,8 @@ class CircleCircleIntersections
       // if the outer circle isn't hollow.
       final outerShape = radiusA > radiusB ? shapeA : shapeB;
       if (outerShape.isSolid) {
-        final center = outerShape == shapeA ? centerB : centerA;
-        return {center};
+        final centerTmp = outerShape == shapeA ? _centerBTemp : _centerATemp;
+        return {centerTmp.clone()};
       } else {
         return {};
       }
@@ -120,10 +124,10 @@ class CircleCircleIntersections
       // infinite number of solutions. Since it is problematic to return a
       // set of infinite size, we'll return 4 distinct points here.
       return {
-        shapeA.absoluteCenter + Vector2(radiusA, 0),
-        shapeA.absoluteCenter + Vector2(0, -radiusA),
-        shapeA.absoluteCenter + Vector2(-radiusA, 0),
-        shapeA.absoluteCenter + Vector2(0, radiusA),
+        Vector2(radiusA, 0)..add(_centerATemp),
+        Vector2(0, -radiusA)..add(_centerATemp),
+        Vector2(-radiusA, 0)..add(_centerATemp),
+        Vector2(0, radiusA)..add(_centerATemp),
       };
     } else {
       // There are definitely collision points if we end up in here.
@@ -144,19 +148,17 @@ class CircleCircleIntersections
       final lengthA = (pow(radiusA, 2) - pow(radiusB, 2) + pow(distance, 2)) /
           (2 * distance);
       final lengthB = sqrt((pow(radiusA, 2) - pow(lengthA, 2)).abs());
-      final centerPoint = shapeA.absoluteCenter +
-          (shapeB.absoluteCenter - shapeA.absoluteCenter) * lengthA / distance;
-      final delta = Vector2(
-        lengthB *
-            (shapeB.absoluteCenter.y - shapeA.absoluteCenter.y).abs() /
-            distance,
-        -lengthB *
-            (shapeB.absoluteCenter.x - shapeA.absoluteCenter.x).abs() /
-            distance,
+      final centerPoint = _centerBTemp.clone()
+        ..sub(_centerATemp)
+        ..scale(lengthA / distance)
+        ..add(_centerATemp);
+      _deltaTemp.setValues(
+        lengthB * (_centerBTemp.y - _centerATemp.y).abs() / distance,
+        -lengthB * (_centerBTemp.x - _centerATemp.x).abs() / distance,
       );
       return {
-        centerPoint + delta,
-        centerPoint - delta,
+        centerPoint.clone()..add(_deltaTemp),
+        centerPoint..sub(_deltaTemp),
       };
     }
   }

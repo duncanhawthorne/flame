@@ -132,7 +132,9 @@ class PolygonComponent extends ShapeComponent {
     }
     for (var i = 0; i < newVertices.length; i++) {
       final newVertex = newVertices[i];
-      _vertices[i].setFrom(newVertex - topLeft);
+      _vertices[i]
+        ..setFrom(newVertex)
+        ..sub(topLeft);
     }
     _path
       ..reset()

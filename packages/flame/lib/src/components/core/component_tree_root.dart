@@ -17,7 +17,7 @@ class ComponentTreeRoot extends Component {
   })  : queue = RecycledQueue(LifecycleEvent.new),
         _blocked = <int>{};
 
-  @visibleForTesting
+  @internal
   final RecycledQueue<LifecycleEvent> queue;
   final Set<int> _blocked;
   late final Map<ComponentKey, Component> _index = {};
@@ -153,7 +153,7 @@ class ComponentTreeRoot extends Component {
     }
 
     for (final parent in reorderParents) {
-      parent.children.rebalanceAll();
+      parent.rebalanceChildren();
     }
 
     if (!hasLifecycleEvents && _lifecycleEventsCompleter != null) {
@@ -211,7 +211,7 @@ enum LifecycleEventStatus {
   done,
 }
 
-@visibleForTesting
+@internal
 enum LifecycleEventKind {
   unknown,
   add,

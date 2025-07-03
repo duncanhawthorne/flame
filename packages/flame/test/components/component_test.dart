@@ -6,9 +6,8 @@ import 'package:flame/src/components/core/component_tree_root.dart';
 import 'package:flame_test/flame_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ordered_set/comparing.dart';
+import 'package:ordered_set/mapping_ordered_set.dart';
 import 'package:ordered_set/ordered_set.dart';
-import 'package:ordered_set/queryable_ordered_set.dart';
 
 import '../custom_component.dart';
 
@@ -273,7 +272,7 @@ void main() {
           expect(parent.isMounted, false);
           expect(child.isMounted, false);
           expect(parent.parent, isNull);
-          expect(child.parent, isNull);
+          expect(child.parent, isNotNull);
 
           await game.world.add(parent);
           await game.ready();
@@ -283,6 +282,36 @@ void main() {
           expect(parent.parent, game.world);
           expect(parent.parent?.parent, game);
           expect(child.parent, parent);
+        },
+      );
+
+      testWithFlameGame(
+        'Parent removal should not lead to null parent of descendants',
+        (game) async {
+          final parent = _LifecycleComponent('parent');
+          final child = _LifecycleComponent('child')..addToParent(parent);
+          final grandChild = _LifecycleComponent('grandchild')
+            ..addToParent(child);
+          await game.world.add(parent);
+          await game.ready();
+
+          expect(parent.isMounted, true);
+          expect(child.isMounted, true);
+          expect(grandChild.isMounted, true);
+          expect(parent.parent, game.world);
+          expect(parent.parent?.parent, game);
+          expect(child.parent, parent);
+          expect(grandChild.parent, child);
+
+          parent.removeFromParent();
+          await game.ready();
+
+          expect(parent.isMounted, false);
+          expect(child.isMounted, false);
+          expect(grandChild.isMounted, false);
+          expect(parent.parent, isNull);
+          expect(child.parent, isNotNull);
+          expect(grandChild.parent, isNotNull);
         },
       );
 
@@ -972,6 +1001,22 @@ void main() {
           );
         },
       );
+
+      testWithFlameGame(
+        'A removed child should be able to be removed from onRemove',
+        (game) async {
+          final parent = _RemoveAllChildrenComponent();
+          final child = _LifecycleComponent('child')..addToParent(parent);
+          await game.world.add(parent);
+          await game.ready();
+          parent.removeFromParent();
+          game.update(0);
+          expect(parent.isMounted, false);
+          expect(child.isMounted, false);
+          expect(child.parent, parent);
+          expect(parent.parent, isNull);
+        },
+      );
     });
 
     group('Moving components', () {
@@ -1428,18 +1473,19 @@ void main() {
         final component0 = Component();
         expect(component0.children.strictMode, false);
 
-        Component.childrenFactory = () => QueryableOrderedSet(
-              OrderedSet.comparing(Comparing.on((e) => e.priority)),
-              strictMode: false,
+        Component.childrenFactory = () => OrderedSet.mapping<num, Component>(
+              (e) => e.priority,
+              // ignore: avoid_redundant_argument_values
+              strictMode: true,
             );
         final component1 = Component();
         final component2 = Component();
         component1.add(component2);
         component2.add(Component());
-        expect(component1.children, isInstanceOf<QueryableOrderedSet>());
-        expect(component1.children.strictMode, false);
-        expect(component2.children, isInstanceOf<QueryableOrderedSet>());
-        expect(component2.children.strictMode, false);
+        expect(component1.children, isInstanceOf<MappingOrderedSet>());
+        expect(component1.children.strictMode, isTrue);
+        expect(component2.children, isInstanceOf<MappingOrderedSet>());
+        expect(component2.children.strictMode, isTrue);
       });
 
       testWithFlameGame('initially same debugMode as parent', (game) async {
@@ -1939,6 +1985,14 @@ class _ComponentWithChildrenRemoveAll extends Component {
     super.onMount();
 
     add(Component());
+    removeAll(children);
+  }
+}
+
+class _RemoveAllChildrenComponent extends Component {
+  @override
+  void onRemove() {
+    super.onMount();
     removeAll(children);
   }
 }

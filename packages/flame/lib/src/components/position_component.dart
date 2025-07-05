@@ -269,7 +269,7 @@ class PositionComponent extends Component
 
   Vector2 absoluteScaleIntoOutput({Vector2? output}) {
     final result = output ?? Vector2.zero();
-    result
+    return result
       ..setFrom(scale)
       ..multiply(_parentAbsoluteScale);
   }

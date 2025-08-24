@@ -4,19 +4,21 @@ import 'package:flutter/gestures.dart';
 
 class DragUpdateEvent extends DisplacementEvent {
   DragUpdateEvent(this.pointerId, super.game, DragUpdateDetails details)
-      : timestamp = details.sourceTimeStamp ?? Duration.zero,
-        super(
-          deviceStartPosition: details.globalPosition.toVector2(),
-          deviceEndPosition: details.globalPosition.toVector2()
-            ..x += details.delta.dx
-            ..y += details.delta.dy,
-        );
+    : timestamp = details.sourceTimeStamp ?? Duration.zero,
+      super(
+        deviceStartPosition: details.globalPosition.toVector2(),
+        deviceEndPosition:
+            details.globalPosition.toVector2()
+              ..x += details.delta.dx
+              ..y += details.delta.dy,
+      );
 
   final int pointerId;
   final Duration timestamp;
 
   @override
-  String toString() => 'DragUpdateEvent('
+  String toString() =>
+      'DragUpdateEvent('
       'devicePosition: $deviceStartPosition, '
       'canvasPosition: $canvasStartPosition, '
       'delta: $localDelta, '

@@ -1,3 +1,13 @@
+## 5.0.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **PERF**: TexturePacker optimizations ([#3647](https://github.com/flame-engine/flame/issues/3647)). ([5cc2eedb](https://github.com/flame-engine/flame/commit/5cc2eedb1cb17f249c97889ba924e763f83d774e))
+
+## 4.4.1
+
+ - Update a dependency to the latest release.
+
 ## 4.4.0
 
  - **FEAT**: Implement measure to fix ghost lines and graphical artifacts in Sprites ([#3590](https://github.com/flame-engine/flame/issues/3590)). ([6fd36bc1](https://github.com/flame-engine/flame/commit/6fd36bc1d883d61621806fba54a792dc6924c4e8))

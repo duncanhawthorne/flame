@@ -154,13 +154,13 @@ abstract class Viewport({
   }
 
   @override
-  Vector2 parentToLocal(Vector2 point) {
-    return globalToLocal(point);
+  Vector2 parentToLocal(Vector2 point, {Vector2? output}) {
+    return globalToLocal(point, output: output);
   }
 
   @override
-  Vector2 localToParent(Vector2 point) {
-    return localToGlobal(point);
+  Vector2 localToParent(Vector2 point, {Vector2? output}) {
+    return localToGlobal(point, output: output);
   }
 
   void transformCanvas(Canvas canvas) {

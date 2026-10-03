@@ -216,9 +216,12 @@ class PositionComponent({
 
   /// The resulting size after all the ancestors and the components own scale
   /// has been applied.
-  Vector2 get absoluteScaledSize {
-    final absoluteScale = this.absoluteScale;
-    return Vector2(
+  Vector2 get absoluteScaledSize => absoluteScaledSizeIntoOutput();
+
+  Vector2 absoluteScaledSizeIntoOutput({Vector2? output}) {
+    final out = output ?? Vector2.zero();
+    final absoluteScale = absoluteScaleIntoOutput(output: out);
+    return out..setValues(
       width * absoluteScale.x.abs(),
       height * absoluteScale.y.abs(),
     );
@@ -266,11 +269,20 @@ class PositionComponent({
 
   /// The resulting scale after all the ancestors and the components own scale
   /// has been applied.
-  Vector2 get absoluteScale => scale.clone()..multiply(_parentAbsoluteScale);
+  Vector2 get absoluteScale => absoluteScaleIntoOutput();
+
+  Vector2 absoluteScaleIntoOutput({Vector2? output}) {
+    final result = output ?? Vector2.zero();
+    return result
+      ..setFrom(scale)
+      ..multiply(_parentAbsoluteScale);
+  }
+
+  static final Vector2 _parentAbsoluteScaleTemp = Vector2.zero();
 
   Vector2 get _parentAbsoluteScale {
     return ancestors().whereType<ReadOnlyScaleProvider>().fold<Vector2>(
-      Vector2.all(1.0),
+      _parentAbsoluteScaleTemp..setAll(1.0),
       (totalScale, c) => totalScale..multiply(c.scale),
     );
   }
@@ -311,27 +323,33 @@ class PositionComponent({
 
   /// Convert local coordinates of a point [point] inside the component
   /// into the parent's coordinate space.
-  Vector2 positionOf(Vector2 point) {
-    return transform.localToGlobal(point);
+  Vector2 positionOf(Vector2 point, {Vector2? output}) {
+    final out = output ?? Vector2.zero();
+    return transform.localToGlobal(point, output: out);
   }
+
+  static final _positionOfAnchorTemp = Vector2.zero();
 
   /// Similar to [positionOf()], but applies to any anchor point within
   /// the component.
-  Vector2 positionOfAnchor(Anchor anchor) {
+  Vector2 positionOfAnchor(Anchor anchor, {Vector2? output}) {
     if (anchor == _anchor) {
       return position;
     }
-    return positionOf(Vector2(anchor.x * size.x, anchor.y * size.y));
+    final out = output ?? Vector2.zero();
+    _positionOfAnchorTemp.setValues(anchor.x * size.x, anchor.y * size.y);
+    return positionOf(_positionOfAnchorTemp, output: out);
   }
 
   /// Convert local coordinates of a point [point] inside the component
   /// into the global (world) coordinate space.
-  Vector2 absolutePositionOf(Vector2 point) {
-    var parentPoint = positionOf(point);
+  Vector2 absolutePositionOf(Vector2 point, {Vector2? output}) {
+    final out = output ?? Vector2.zero();
+    var parentPoint = positionOf(point, output: out);
     var ancestor = parent;
     while (ancestor != null) {
       if (ancestor is PositionComponent) {
-        parentPoint = ancestor.positionOf(parentPoint);
+        parentPoint = ancestor.positionOf(parentPoint, output: out);
       }
       ancestor = ancestor.parent;
     }
@@ -340,8 +358,13 @@ class PositionComponent({
 
   /// Similar to [absolutePositionOf()], but applies to any anchor
   /// point within the component.
-  Vector2 absolutePositionOfAnchor(Anchor anchor) =>
-      absolutePositionOf(Vector2(anchor.x * size.x, anchor.y * size.y));
+  Vector2 absolutePositionOfAnchor(Anchor anchor, {Vector2? output}) {
+    final out = output ?? Vector2.zero();
+    return absolutePositionOf(
+      out..setValues(anchor.x * size.x, anchor.y * size.y),
+      output: out,
+    );
+  }
 
   /// Transform [point] from the parent's coordinate space into the local
   /// coordinates. This function is the inverse of [positionOf()].
@@ -386,7 +409,12 @@ class PositionComponent({
       absolutePositionOfAnchor(Anchor.topLeft);
 
   /// The absolute center of the component.
-  Vector2 get absoluteCenter => absolutePositionOfAnchor(Anchor.center);
+  Vector2 get absoluteCenter => absoluteCenterIntoOutput();
+
+  Vector2 absoluteCenterIntoOutput({Vector2? output}) {
+    final out = output ?? Vector2.zero();
+    return absolutePositionOfAnchor(Anchor.center, output: out);
+  }
 
   /// Returns the angle formed by component's orientation vector and a vector
   /// starting at component's absolute position and ending at [target]. I.e.
@@ -483,6 +511,9 @@ class PositionComponent({
     transform.offset = Vector2(-_anchor.x * _size.x, -_anchor.y * _size.y);
   }
 
+  static final _p1Temp = Vector2.zero();
+  static final _p2Temp = Vector2.zero();
+
   @override
   void renderDebugMode(Canvas canvas) {
     final zoom = CameraComponent.currentCamera?.viewfinder.zoom ?? 1.0;
@@ -495,7 +526,7 @@ class PositionComponent({
     canvas.drawLine(Offset(p0.x - 2, p0.y), Offset(p0.x + 2, p0.y), debugPaint);
     if (precision != null) {
       // print coordinates at the top-left corner
-      final p1 = absolutePositionOfAnchor(Anchor.topLeft);
+      final p1 = absolutePositionOfAnchor(Anchor.topLeft, output: _p1Temp);
       final x1str = p1.x.toStringAsFixed(precision);
       final y1str = p1.y.toStringAsFixed(precision);
       debugTextPaint.render(
@@ -504,7 +535,7 @@ class PositionComponent({
         Vector2(-10 * (precision + 3) / zoom, -15 / zoom),
       );
       // print coordinates at the bottom-right corner
-      final p2 = absolutePositionOfAnchor(Anchor.bottomRight);
+      final p2 = absolutePositionOfAnchor(Anchor.bottomRight, output: _p2Temp);
       final x2str = p2.x.toStringAsFixed(precision);
       final y2str = p2.y.toStringAsFixed(precision);
       debugTextPaint.render(

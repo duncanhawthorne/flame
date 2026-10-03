@@ -53,9 +53,11 @@ class FollowBehavior({
 
   @override
   void update(double dt) {
+    final targetPosition = target.position;
+    final ownerPosition = owner.position;
     _tempDelta.setValues(
-      verticalOnly ? 0 : target.position.x - owner.position.x,
-      horizontalOnly ? 0 : target.position.y - owner.position.y,
+      verticalOnly ? 0 : targetPosition.x - ownerPosition.x,
+      horizontalOnly ? 0 : targetPosition.y - ownerPosition.y,
     );
 
     final distance = _tempDelta.length;
@@ -64,7 +66,7 @@ class FollowBehavior({
       _tempDelta.scale(deltaOffset / distance);
     }
     if (_tempDelta.x != 0 || _tempDelta.y != 0) {
-      owner.position = _tempDelta..add(owner.position);
+      owner.position = _tempDelta..add(ownerPosition);
     }
   }
 }

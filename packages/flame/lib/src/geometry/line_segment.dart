@@ -21,7 +21,7 @@ class LineSegment(final Vector2 from, final Vector2 to) {
   Vector2 get direction => (to - from)..normalize();
 
   /// The length of the line segment.
-  double get length => (to - from).length;
+  double get length => to.distanceTo(from);
 
   /// The point in the center of this line segment.
   Vector2 get midpoint => (from + to)..scale(0.5);

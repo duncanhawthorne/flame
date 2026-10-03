@@ -210,7 +210,9 @@ class PolygonComponent(
     }
     for (var i = 0; i < newVertices.length; i++) {
       final newVertex = newVertices[i];
-      _vertices[i].setFrom(newVertex - topLeft);
+      _vertices[i]
+        ..setFrom(newVertex)
+        ..sub(topLeft);
     }
     _hasValidGlobalVertices = false;
     _path

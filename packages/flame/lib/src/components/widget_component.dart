@@ -113,6 +113,8 @@ class WidgetComponent({
   @internal
   Listenable get hostListenable => _hostNotifier;
 
+  static final _absoluteScaleTemp = Vector2.zero();
+
   /// The [BoxConstraints] that the widget is laid out with.
   @internal
   BoxConstraints constraintsFor(Vector2 gameSize) {
@@ -123,7 +125,9 @@ class WidgetComponent({
     if (constraints != null) {
       return constraints;
     }
-    final absoluteScale = this.absoluteScale;
+    final absoluteScale = absoluteScaleIntoOutput(
+      output: _absoluteScaleTemp,
+    );
     final scaleX = absoluteScale.x.abs();
     final scaleY = absoluteScale.y.abs();
     return BoxConstraints.loose(

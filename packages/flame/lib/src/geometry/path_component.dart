@@ -101,10 +101,12 @@ class PathComponent({
 
   final _cachedGlobalPolygons = ValueCache<List<List<Vector2>>>();
 
+  static final _absoluteScaleTemp = Vector2.zero();
+
   /// The vertices of each polygon in the global coordinate system, see
   /// [PolygonComponent.globalVertices].
   List<List<Vector2>> globalPolygons() {
-    final scale = absoluteScale;
+    final scale = absoluteScaleIntoOutput(output: _absoluteScaleTemp);
     final shouldReverse = scale.y.isNegative ^ scale.x.isNegative;
     final angle = absoluteAngle;
     final position = absoluteTopLeftPosition;
@@ -118,7 +120,7 @@ class PathComponent({
         final polygon = _polygons[i];
         final globalPolygon = _globalPolygons[i];
         for (var j = 0; j < polygon.length; j++) {
-          globalPolygon[j].setFrom(absolutePositionOf(polygon[j]));
+          absolutePositionOf(polygon[j], output: globalPolygon[j]);
         }
         if (shouldReverse) {
           // Since the list will be clockwise we have to reverse it for it to

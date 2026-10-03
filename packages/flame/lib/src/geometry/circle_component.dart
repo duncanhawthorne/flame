@@ -63,12 +63,13 @@ class CircleComponent extends ShapeComponent {
 
   // Used to not create new Vector2 objects every time radius is called.
   final Vector2 _scaledSize = Vector2.zero();
+  static final Vector2 _absoluteScaleTemp = Vector2.zero();
 
   /// Get the radius of the circle after it has been sized and scaled.
   double get scaledRadius {
     _scaledSize
       ..setFrom(size)
-      ..multiply(absoluteScale);
+      ..multiply(absoluteScaleIntoOutput(output: _absoluteScaleTemp));
     return min(_scaledSize.x, _scaledSize.y) / 2;
   }
 
@@ -91,11 +92,14 @@ class CircleComponent extends ShapeComponent {
     canvas.drawCircle(_centerOffset, radius, debugPaint);
   }
 
+  static final _absCenterTemp = Vector2.zero();
+
   /// Checks whether the represented circle contains the [point].
   @override
   bool containsPoint(Vector2 point) {
     final scaledRadius = this.scaledRadius;
-    return absoluteCenter.distanceToSquared(point) <
+    return absoluteCenterIntoOutput(output: _absCenterTemp)
+            .distanceToSquared(point) <
         scaledRadius * scaledRadius;
   }
 
@@ -106,6 +110,8 @@ class CircleComponent extends ShapeComponent {
     final dy = point.y - radius;
     return dx * dx + dy * dy <= radius * radius;
   }
+
+  static final _absoluteCenterTemp = Vector2.zero();
 
   /// Returns the locus of points in which the provided line segment intersects
   /// the circle.
@@ -118,6 +124,9 @@ class CircleComponent extends ShapeComponent {
     LineSegment lineSegment, {
     double epsilon = double.minPositive,
   }) {
-    return lineSegment.circleIntersections(absoluteCenter, scaledRadius);
+    return lineSegment.circleIntersections(
+      absoluteCenterIntoOutput(output: _absoluteCenterTemp),
+      scaledRadius,
+    );
   }
 }

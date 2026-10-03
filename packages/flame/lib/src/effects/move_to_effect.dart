@@ -43,13 +43,13 @@ class MoveToEffect(
   @override
   @mustCallSuper
   void onStart() {
-    _offset.setFrom(_destination - target.position);
+    _offset..setFrom(_destination)..sub(target.position);
   }
 
   @override
   void apply(double progress) {
     final dProgress = progress - previousProgress;
-    target.position += _offset * dProgress;
+    target.position.addScaled(_offset, dProgress);
   }
 
   @override
